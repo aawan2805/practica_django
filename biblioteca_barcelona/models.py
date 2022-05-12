@@ -8,23 +8,24 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 # Poner ON DELTE, ON UPDATE
 
 class Biblioteca(models.Model):
-	codi = models.CharField(unique=True,
+	codi = models.CharField(primary_key=True,
 							max_length=10,
 							null=False,
 							blank=False)
 	nom = models.CharField(max_length=50,
 						   null=False,
 						   blank=False)
+	materials = models.ManyToManyField('Material', through='Quantitzacio', related_name="biblioteques")
 
 	def __str__(self):
-		print("Biblioteca({}, {})".format(self.codi, self.name))
+		return ("Biblioteca({}, {})".format(self.codi, self.name))
 
 	class Meta:
 		db_table = "biblioteca"
 
 
 class CodiPostal(models.Model):
-	codi = models.CharField(unique=True,
+	codi = models.CharField(primary_key=True,
 							max_length=5,
 							null=False,
 							blank=False)
@@ -35,7 +36,7 @@ class CodiPostal(models.Model):
 									  db_column="biblioteca",
 									  related_name="codi_postal")
 	def __str__(self):
-		print("CodiPostal({})".format(self.codi))
+		return ("CodiPostal({})".format(self.codi))
 
 	class Meta:
 		db_table = "codipostal"
@@ -58,14 +59,14 @@ class Horari(models.Model):
 								   db_column="biblioteca",
 								   related_name="horaris")
 	def __str__(self):
-		print("Horari({} desde {} fins a {})".format(self.dia, self.hora_obertura, self.hora_tancament))
+		return ("Horari({} desde {} fins a {})".format(self.dia, self.hora_obertura, self.hora_tancament))
 
 	class Meta:
 		db_table = "horari"
 
 
 class Soci(models.Model):
-	dni = models.CharField(unique=True,
+	dni = models.CharField(primary_key=True,
 						   max_length=9,
 						   null=False,
 						   blank=False)
@@ -84,14 +85,14 @@ class Soci(models.Model):
 								   db_column="biblioteca",
 								   related_name="socis")
 	def __str__(self):
-		print("Soci({}, {}, {}, {})".format(self.dni, self.nom, self.cognom, self.data_naixement))
+		return ("Soci({}, {}, {}, {})".format(self.dni, self.nom, self.cognom, self.data_naixement))
 
 	class Meta:
 		db_table = "soci"
 
 
 class Concurs(models.Model):
-	data = models.DateField(unique=True,
+	data = models.DateField(primary_key=True,
 							null=False,
 							blank=False)
 	edat_minima = models.IntegerField(null=False,
@@ -112,62 +113,47 @@ class Concurs(models.Model):
 	socis = models.ManyToManyField(Soci, related_name="concursos") # La interrelació 1..* - 1..* entre Soci i Concurs
 
 	def __str__(self):
-		print("Concurs({})".format(self.data))
+		return ("Concurs({})".format(self.data))
 
 	class Meta:
 		db_table = "concurs"
 
 
 class Material(models.Model):
-	codi_barres = models.CharField(unique=True,
-								  max_length=13,
-								  null=False,
-								  blank=False)
+	codi_barres = models.CharField(primary_key=True,
+								   max_length=13,
+								   null=False,
+								   blank=False)
 	nom = models.CharField(max_length=50,
 						   null=False,
 						   blank=False)
-	quantitats = models.ManyToManyField(Biblioteca, through='Quantitzacio')
 
 	def __str__(self):
-		print("Material({}, {})".format(self.codi_barres, self.nom))
+		return ("Material({}, {})".format(self.codi_barres, self.nom))
 
 	class Meta:
 		db_table = "material"
 
 
-class Llibre(models.Model): # Cómo hago que sea una CP??? y tengo que hacer que apunte al ID?????
-	codi_barres = models.ForeignKey(Material,
-								   unique=True,
-								   null=False,
-								   blank=False,
-								   on_delete=models.CASCADE,
-								   db_column="codi_barres",
-								   related_name="llibre") # Puedo usar 1to1?
-	autor = models.CharField(max_length=50,
-							 null=True,
-							 blank=True) # null true? o tiene que estar en RS?
+class Llibre(Material): # Cómo hago que sea una CP??? y tengo que hacer que apunte al ID?????
+	codi_barres_material = models.OneToOneField(Material, parent_link=True, primary_key=True, null=False, blank=False, on_delete=models.CASCADE, db_column="codi_barres")
+	autor = models.CharField(max_length=50, null=False, blank=False) # null true? o tiene que estar en RS?
 
 	def __str__(self):
-		print("Llibre({}, {})".format(self.codi_barres, self.autor))
+		return ("Llibre({}, {})".format(self.codi_barres, self.autor))
 
 	class Meta:
 		db_table = "llibre"
 
 
-class Accesori(models.Model):
-	codi_barres = models.ForeignKey(Material,
-								   unique=True,
-								   null=False,
-								   blank=False,
-								   on_delete=models.CASCADE,
-								   db_column="codi_barra",
-								   related_name="accesori")
+class Accesori(Material):
+	codi_barres_accesori = models.OneToOneField(Material, parent_link=True, primary_key=True, null=False, blank=False, on_delete=models.CASCADE, db_column="codi_barres")
 	tipus = models.CharField(max_length=50,
-							 null=True,
-							 blank=True) # null true? o tiene que estar en RS?
+							 null=False,
+							 blank=False)
 
 	def __str__(self):
-		print("Accesori({}, {})".format(self.codi_barres, self.tipus))
+		return ("Accesori({}, {})".format(self.codi_barres, self.tipus))
 
 	class Meta:
 		db_table = "accesori"
@@ -191,8 +177,8 @@ class Prestec(models.Model):
 							 db_column="soci",
 							 related_name="prestecs") # SI borro los socios borro tambien el prestamo. No me interesa mantener historial.??
 	prestec_demanat = models.ForeignKey(Biblioteca,
-										null=True,
 										blank=True,
+										null=True,
 										on_delete=models.RESTRICT,
 										db_column="prestec_demanat",
 										related_name="prestec_prestat")
@@ -205,11 +191,17 @@ class Prestec(models.Model):
 
 class Quantitzacio(models.Model):
 	material = models.ForeignKey(Material,
+								 null=False,
+								 blank=False,
 								 db_column="material",
-								 on_delete=models.CASCADE)
+								 on_delete=models.CASCADE,
+								 related_name="quantitats")
 	biblioteca = models.ForeignKey(Biblioteca,
+								   null=False,
+								   blank=False,
 								   db_column="biblioteca",
-								   on_delete=models.CASCADE)
+								   on_delete=models.CASCADE,
+								   related_name="quantitats")
 	quantitat = models.IntegerField(null=False,
 									blank=False,
 									validators=[MinValueValidator(0)])

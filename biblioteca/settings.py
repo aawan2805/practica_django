@@ -81,10 +81,10 @@ DATABASES = {
     # }
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'practica',
-        'USER': 'practica',
-        'PASSWORD': 'practica',
-        'HOST': 'localhost',
+        'NAME': 'est_d1914872',
+        'USER': 'est_d1914872',
+        'PASSWORD': 'dB.d1914872',
+        'HOST': 'ubiwan.epsevg.upc.edu',
         'PORT': '5432',
     }
 

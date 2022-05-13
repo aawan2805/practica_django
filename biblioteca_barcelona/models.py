@@ -18,7 +18,7 @@ class Biblioteca(models.Model):
 	materials = models.ManyToManyField('Material', through='Quantitzacio', related_name="biblioteques")
 
 	def __str__(self):
-		return ("Biblioteca({}, {})".format(self.codi, self.name))
+		return ("Biblioteca({}, {})".format(self.codi, self.nom))
 
 	class Meta:
 		db_table = "biblioteca"
@@ -185,6 +185,9 @@ class Prestec(models.Model):
 	data_estimacio = models.DateField(null=True,
 									  blank=True)
 
+	def __str__(self):
+		return f'Prestec(soci={self.soci.dni}, material={self.material.codi_barres})'
+
 	class Meta:
 		db_table = "prestec"
 
@@ -202,9 +205,11 @@ class Quantitzacio(models.Model):
 								   db_column="biblioteca",
 								   on_delete=models.CASCADE,
 								   related_name="quantitats")
-	quantitat = models.IntegerField(null=False,
-									blank=False,
-									validators=[MinValueValidator(0)])
+	quantitat_disponible = models.IntegerField(null=False, blank=False, validators=[MinValueValidator(0)])
+	quantitat_total = models.IntegerField(null=False, blank=False, validators=[MinValueValidator(0)])
+
+	def __str__(self):
+		return f'Quantitzacio(biblioteca={self.biblioteca}, material={self.material}, quantitat_total={self.quantitat_total}, quantitat_disponible={self.quantitat_disponible})'
 
 	class Meta:
 		db_table = "quantitzacio"

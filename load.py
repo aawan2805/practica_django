@@ -12,7 +12,7 @@ fake = Faker('es_ES')
 
 # numbers = set(fake.unique.random_int() for i in range(1000))
 
-from random import randint
+from random import randint, choice
 
 POSSIBLE_LETTERS = (
     "T",
@@ -41,6 +41,14 @@ POSSIBLE_LETTERS = (
     "T",
 )
 
+accs = ["Ratoli", "Portatil", "Ordinador", "Funda", "HDD", "SSD", "RAM", "Auriculars", "USB", "Router", "Teclat", "Tablet"]
+
+for accesori in Accesori.objects.all():
+    # change
+    accesori.tipus = choice(accs)
+    accesori.save()
+
+exit(1)
 
 # Insert de les biblioteques
 biblioteques = [] # Tindrem el control de les bibliotques afegides. No haurem de fer queries per a obtenir-les.
@@ -87,7 +95,7 @@ print("7 horaris inserits per a cada biblioteca.")
 
 # Insert dels socis
 socios = []
-for i in range(250):
+for i in range(350):
     numero_dni = randint(10000000, 99999999)
     letra_dni = POSSIBLE_LETTERS[numero_dni % 23]
 
@@ -136,9 +144,9 @@ print("Concursos inserits.")
 materials = []
 llibres = []
 accesoris = []
-while len(materials) != 150:
+while len(materials) != 10000:
     try:
-        if len(materials) <= 75: # inserim els llibres. Fem aquest control pels llibres.
+        if len(materials) <= 5000: # inserim els llibres. Fem aquest control pels llibres.
             isbn = fake.unique.isbn13(separator="")
         else: # Accesorias amb el ean13
             isbn = fake.unique.ean13()
@@ -155,7 +163,7 @@ while len(materials) != 150:
 print("Materials inserits.")
 
 
-for i in range(75):
+for i in range(5000):
     # Els 500 primers materials serán llibres
     autor = fake.name()
     mt = materials[i]
@@ -165,7 +173,7 @@ for i in range(75):
 print("Llibres creats.")
 
 
-for i in range(75,150):
+for i in range(5000,10000):
     # Els 500 últims materials serán accesoris
     mt = materials[i]
     tipus = fake.name()
@@ -227,18 +235,18 @@ prestecs = []
 i = 0
 
 # Primer afegim els prestecs que s'ha  retornat o no pero que no s'han demanat a altres biblioteques
-while len(prestecs) <= 200:
+while len(prestecs) <= 2000:
     r_soci = fake.random_int(min=0, max=len(socios)-1) # Obtenim un soci qualsevol
     soci = socios[r_soci]
 
     biblioteca_del_soci = soci.biblioteca
     materials_bibliteca_soci = biblioteca_del_soci.materials.all()
 
-    n_prestecs = fake.random_int(min=0, max=len(materials_bibliteca_soci)) % 7 # Posem 7 prestecs com a màxim
+    n_prestecs = fake.random_int(min=0, max=len(materials_bibliteca_soci)) # Posem 7 prestecs com a màxim
     for q in range(n_prestecs):
         qt_red = Quantitzacio.objects.get(biblioteca=biblioteca_del_soci, material=materials_bibliteca_soci[q])
         if qt_red.quantitat_disponible-1 < 0:
-            break
+            continue
 
         data_limit = fake.date_between(start_date=soci.data_naixement)
 
@@ -260,7 +268,7 @@ while len(prestecs) <= 200:
         qt_red.quantitat_disponible = qt_red.quantitat_disponible-1
         qt_red.save()
 
-while len(prestecs) <= 250: # Inserim 100 materials en prèstec pero demanats d'una altra biblioteca
+while len(prestecs) <= 2100: # Inserim 100 materials en prèstec pero demanats d'una altra biblioteca
     r_soci = fake.random_int(min=0, max=len(socios)-1) # Obtenim un soci qualsevol
     soci = socios[r_soci]
 

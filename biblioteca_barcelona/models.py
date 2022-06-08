@@ -1,5 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, AbstractUser
+from django.contrib.auth.models import User
 
 # Poner checks
 # Poner null/not null
@@ -32,6 +34,7 @@ class CodiPostal(models.Model):
 	biblioteca = models.OneToOneField(Biblioteca,
 									  null=False,
 									  blank=False,
+									  unique=True,
 									  on_delete=models.RESTRICT,
 									  db_column="biblioteca",
 									  related_name="codi_postal")
@@ -65,17 +68,13 @@ class Horari(models.Model):
 		db_table = "horari"
 
 
-class Soci(models.Model):
+class Soci(AbstractUser):
+	username = models.CharField(max_length=20, null=True, blank=True) # Els fem nulls per a que no ens doni error.
+	password = models.CharField(max_length=20, null=True, blank=True) # Els fem nulls per a que no ens doni error.
 	dni = models.CharField(primary_key=True,
 						   max_length=9,
 						   null=False,
 						   blank=False)
-	nom = models.CharField(max_length=50,
-						   null=False,
-						   blank=False) # Null true sta be? o ha de estar en RS?
-	cognom = models.CharField(max_length=50,
-							  null=False,
-							  blank=False) # Null true sta be? o ha de estar en RS?
 	data_naixement = models.DateField(null=False,
 									  blank=False)
 	biblioteca = models.ForeignKey(Biblioteca,
@@ -84,6 +83,8 @@ class Soci(models.Model):
 								   on_delete=models.RESTRICT,
 								   db_column="biblioteca",
 								   related_name="socis")
+	USERNAME_FIELD = 'dni'
+
 	def __str__(self):
 		return ("Soci({}, {}, {}, {})".format(self.dni, self.nom, self.cognom, self.data_naixement))
 
@@ -214,3 +215,9 @@ class Quantitzacio(models.Model):
 	class Meta:
 		db_table = "quantitzacio"
 		unique_together = ('material', 'biblioteca')
+
+
+"""
+Mention about iheritance of Auth class.
+
+"""
